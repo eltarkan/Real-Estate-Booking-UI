@@ -2,7 +2,7 @@
   <div class="flex flex-row w-full px-2 py-4 border-b-2 border-gray-400">
 
     <AvatarGroup
-      :items="users"
+      :items="store.dummyData"
       size="md"
       :max="5"
       overlap="-space-x-2"
@@ -50,8 +50,10 @@
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next'
 import AvatarGroup from '@/components/molecules/AvatarGroup.vue'
-import { UserPopData } from '@/helpers/dummy.ts'
 
-const users = UserPopData
+import { useAppointments } from '@/stores/appointments'
+const store = useAppointments()
+
+store.dummyDataFeed()
 
 </script>
