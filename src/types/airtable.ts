@@ -7,6 +7,7 @@ export interface AppointmentFields {
   contact_surname: string[]
   contact_email: string[]
   contact_phone: number[]
+  is_cancelled: boolean | false
 }
 
 export interface AppointmentRecord {

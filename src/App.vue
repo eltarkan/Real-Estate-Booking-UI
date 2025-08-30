@@ -4,7 +4,7 @@
 
     <div class="flex flex-col">
       <AppointmentDetailBar
-        title="134 Appointments found."
+        :title="`${store.total} Appointments found.`"
         button-text="Create Appointment"
         button-variant="primary"
         button-size="md"
@@ -14,15 +14,18 @@
         :loading="store.loading"
         :error="store.error"
         :items="store.items"
-        :assignees="store.dummyData"
+      :assignees="store.dummyData"
       />
 
-      <Pagination
-        v-model:page="store.page"
-        :total-pages="store.items.length"
-        @update:page="store.fetchPage"
-      />
-
+      <div class="mt-4">
+        <Pagination
+          v-model:page="store.page"
+          :total-pages="store.totalPages"
+        :sibling-count="1"
+        :boundary-count="1"
+        @update:page="store.setPage"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -38,7 +41,7 @@ import { useAppointments } from '@/stores/appointments'
 const store = useAppointments()
 
 onMounted(async () => {
-  await store.fetchPage(1)
-  store.dummyDataFeed()
+  await store.fetchAll()
+  await store.dummyDataFeed()
 })
 </script>

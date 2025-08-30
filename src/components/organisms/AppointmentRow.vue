@@ -14,9 +14,11 @@
 
       <div class="flex w-1/4 items-center justify-end">
         <AppointmentMeta
-          :status-text="item.fields.status || 'Cancelled'"
-          :date-text="item.fields.appointment_date_formatted || '08/05/2024 09:00'"
+          :is-cancelled="item.fields.is_cancelled === true"
+          :iso-date="item.fields.appointment_date"
+          display-format="DD/MM/YYYY HH:mm"
         />
+
       </div>
 
       <AssigneesCell :items="assignees" :max="5" />

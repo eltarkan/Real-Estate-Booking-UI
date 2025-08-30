@@ -3,16 +3,13 @@ import type { AppointmentRecord, AirtableResponse } from '@/types/airtable'
 import { UserPopData } from '../helpers/dummy'
 
 interface State {
+  allItems: AppointmentRecord[]
   items: AppointmentRecord[]
-
-  pageOffsets: Record<number, string | null>
-  itemsByPage: Record<number, AppointmentRecord[]>
 
   page: number
   pageSize: number
-  hasNext: boolean
-
   loading: boolean
+  loadedAll: boolean
   error: string | null
 
   dummyData: object[]
@@ -20,25 +17,20 @@ interface State {
 
 export const useAppointments = defineStore('appointments', {
   state: (): State => ({
+    allItems: [],
     items: [],
-    pageOffsets: { 1: null },
-    itemsByPage: {},
     page: 1,
     pageSize: 10,
-    hasNext: false,
     loading: false,
+    loadedAll: false,
     error: null,
     dummyData: [],
   }),
 
   actions: {
-    async fetchPage(targetPage: number = 1) {
-      if (targetPage < 1) targetPage = 1
-
-      // Get from cache
-      if (this.itemsByPage[targetPage]) {
-        this.page = targetPage
-        this.items = this.itemsByPage[targetPage]
+    async fetchAll() {
+      if (this.loadedAll) {
+        this._applyPage()
         return
       }
 
@@ -46,66 +38,50 @@ export const useAppointments = defineStore('appointments', {
       const BASE_ID = import.meta.env.VITE_AIRTABLE_BASE
       const TABLE   = 'Appointments'
 
-      const params = new URLSearchParams()
-      params.set('pageSize', String(this.pageSize))
-      params.set('sort[0][field]', 'appointment_date')
-      params.set('sort[0][direction]', 'desc')
+      const baseParams = new URLSearchParams()
+      baseParams.set('pageSize', '100')
+      baseParams.set('sort[0][field]', 'appointment_date')
+      baseParams.set('sort[0][direction]', 'desc')
 
       this.loading = true
       this.error = null
 
       try {
-        let currentPage = this._maxKnownPage() || 1
-        if (!this.itemsByPage[currentPage] && currentPage === 1) {
-          currentPage = 1
-        }
+        let offset: string | undefined
+        const acc: AppointmentRecord[] = []
+        let guard = 0
 
-        while (currentPage <= targetPage) {
-          if (this.itemsByPage[currentPage]) {
-            if (currentPage === targetPage) break
-            currentPage++
-            continue
-          }
-
-          const offset = this.pageOffsets[currentPage] ?? null
-          const urlParams = new URLSearchParams(params)
-          if (offset) urlParams.set('offset', offset)
+        do {
+          const params = new URLSearchParams(baseParams)
+          if (offset) params.set('offset', offset)
 
           const res = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?${urlParams}`,
+            `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`,
             { headers: { Authorization: `Bearer ${API_KEY}` } }
           )
           if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
           const data: AirtableResponse = await res.json()
 
-          const sorted = [...data.records].sort((a, b) => {
+          acc.push(...data.records)
+          offset = data.offset
+          guard++
+          if (guard > 500) throw new Error('Pagination guard tripped')
 
-            const adA = (a.fields as any)?.appointment_date
-            const adB = (b.fields as any)?.appointment_date
-            if (adA && adB) {
-              return new Date(adB).getTime() - new Date(adA).getTime()
-            }
+        } while (offset)
 
-            return new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
-          })
-
-          // Store in cache
-          this.itemsByPage[currentPage] = sorted
-
-          if (data.offset) {
-            this.pageOffsets[currentPage + 1] = data.offset
-            this.hasNext = true
-          } else {
-            this.hasNext = false
+        acc.sort((a, b) => {
+          const adA = (a.fields as any)?.appointment_date
+          const adB = (b.fields as any)?.appointment_date
+          if (adA && adB) {
+            return new Date(adB).getTime() - new Date(adA).getTime()
           }
+          return new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
+        })
 
-          if (currentPage === targetPage) break
-          currentPage++
-        }
-
-        this.page = targetPage
-        this.items = this.itemsByPage[targetPage] ?? []
-
+        this.allItems = acc
+        this.loadedAll = true
+        this.page = 1
+        this._applyPage()
       } catch (e: any) {
         this.error = e?.message ?? 'Fetch error'
       } finally {
@@ -113,40 +89,53 @@ export const useAppointments = defineStore('appointments', {
       }
     },
 
-    async nextPage() {
-      if (!this.hasNext) return
-      await this.fetchPage(this.page + 1)
+
+    setPage(p: number) {
+      const max = Math.max(1, this.totalPages)
+      this.page = Math.min(Math.max(1, p), max)
+      this._applyPage()
     },
 
-    async prevPage() {
-      if (this.page <= 1) return
-      await this.fetchPage(this.page - 1)
+    nextPage() {
+      if (this.canNext) this.setPage(this.page + 1)
+    },
+    prevPage() {
+      if (this.canPrev) this.setPage(this.page - 1)
     },
 
+    /**
+     * Avatar dummy verisi
+     */
     async dummyDataFeed() {
       this.dummyData = UserPopData
     },
 
-    reset() {
-      this.items = []
-      this.itemsByPage = {}
-      this.pageOffsets = { 1: null }
-      this.page = 1
-      this.hasNext = false
-      this.error = null
-      this.loading = false
+    /**
+     * Mevcut page & pageSize'a göre items slice uygular.
+     */
+    _applyPage() {
+      const start = (this.page - 1) * this.pageSize
+      const end = start + this.pageSize
+      this.items = this.allItems.slice(start, end)
     },
 
-    _maxKnownPage(): number | null {
-      const pages = Object.keys(this.itemsByPage).map(n => Number(n)).filter(Boolean)
-      return pages.length ? Math.max(...pages) : null
+    reset() {
+      this.allItems = []
+      this.items = []
+      this.page = 1
+      this.pageSize = 10
+      this.loadedAll = false
+      this.error = null
+      this.loading = false
     },
   },
 
   getters: {
-    count: (s) => s.items.length,
-    emails: (s) => s.items.flatMap(r => r.fields.contact_email),
-    canNext: (s) => s.hasNext,
+    total: (s) => s.allItems.length,
+    totalPages: (s) => Math.max(1, Math.ceil(s.allItems.length / s.pageSize)),
+    canNext: (s) => s.page < Math.ceil((s.allItems.length || 1) / s.pageSize),
     canPrev: (s) => s.page > 1,
-  }
+    count: (s) => s.items.length,
+    emails: (s) => s.allItems.flatMap(r => r.fields.contact_email),
+  },
 })
