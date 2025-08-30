@@ -1,7 +1,17 @@
 <template>
   <div class="flex flex-row w-full px-2 py-4 border-b-2 border-gray-400">
 
-    <UserPop />
+    <AvatarGroup
+      :items="users"
+      size="md"
+      :max="5"
+      overlap="-space-x-2"
+      :ring="true"
+      ring-color="ring-white"
+      avatar-class=""
+      counter-bg-class="bg-gray-100"
+      counter-text-class="text-black"
+    />
 
     <div class="flex flex-row gap-4 w-full px-10">
       <select class="border-gray-200 border-1 rounded-lg px-4 py-2 text-sm w-64 focus:outline-0">
@@ -39,6 +49,9 @@
 </template>
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next'
-import UserPop from './UserPop.vue'
+import AvatarGroup from '@/components/molecules/AvatarGroup.vue'
+import { UserPopData } from '@/helpers/dummy.ts'
+
+const users = UserPopData
 
 </script>
