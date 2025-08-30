@@ -1,35 +1,29 @@
 <template>
   <div
     class="flex items-center justify-center rounded-full ring-1"
-    :class="[
-      sizeClasses,
-      ringClasses,
-      bgClass,
-      textClass,
-      extraClass
-    ]"
+    :class="[sizeClasses, ring ? ringColor : 'ring-0', textClass]"
+    :style="bgStyle"
     :title="title"
   >
     <slot>{{ initials }}</slot>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps({
-  initials: { type: String, default: '' },
-  size: { type: String, default: 'md' }, // xs|sm|md|lg
-  bgClass: { type: String, default: 'bg-gray-200' },
-  textClass: { type: String, default: 'text-black' },
-  ring: { type: Boolean, default: true },
-  ringColor: { type: String, default: 'ring-white' },
-  extraClass: { type: String, default: '' },
-  title: { type: String, default: '' },
-})
+const props = defineProps<{
+  initials?: string
+  size?: 'xs'|'sm'|'md'|'lg'
+  ring?: boolean
+  ringColor?: string
+  textClass?: string
+  bgColor?: string | null
+  title?: string
+}>()
 
 const sizeClasses = computed(() => {
-  switch (props.size) {
+  switch (props.size ?? 'md') {
     case 'xs': return 'h-6 w-6 text-[10px] font-semibold'
     case 'sm': return 'h-8 w-8 text-xs font-semibold'
     case 'lg': return 'h-12 w-12 text-base font-bold'
@@ -37,5 +31,8 @@ const sizeClasses = computed(() => {
   }
 })
 
-const ringClasses = computed(() => props.ring ? `ring-2 ${props.ringColor}` : 'ring-0')
+const ring = computed(() => props.ring ?? true)
+const ringColor = computed(() => props.ringColor ?? 'ring-white')
+const textClass = computed(() => props.textClass ?? 'text-white')
+const bgStyle = computed(() => props.bgColor ? ({ backgroundColor: props.bgColor }) : undefined)
 </script>

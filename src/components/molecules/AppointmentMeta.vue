@@ -28,38 +28,46 @@
 </template>
 
 <script setup>
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import moment from 'moment'
 import 'moment/locale/en-gb'
 import { Clock } from 'lucide-vue-next'
 
 const props = defineProps({
-  // ISO date (example: 2024-05-08T09:00:00Z)
   isoDate: { type: String, required: true },
-  // cancelled
   isCancelled: { type: Boolean, default: false },
-  // date format
   displayFormat: { type: String, default: 'DD/MM/YYYY HH:mm' },
 })
 
-const m = moment(props.isoDate)
+const now = ref(moment())
+let t = null
+onMounted(() => {
+  t = setInterval(() => { now.value = moment() }, 60_000)
+})
+onUnmounted(() => { if (t) clearInterval(t) })
 
-let statusLabel = 'Upcoming'
-let timeLeft = ''
-let statusColorClass = 'text-pink-600'
+const m = computed(() => moment(props.isoDate))
 
-if (props.isCancelled) {
-  statusLabel = 'Cancelled'
-  timeLeft = ''
-  statusColorClass = 'text-pink-600'
-} else if (m.isValid() && m.isBefore(moment())) {
-  statusLabel = 'Completed'
-  timeLeft = ''
-  statusColorClass = 'text-green-600'
-} else if (m.isValid()) {
-  // upcoming → "X days" / "Y hours"
-  timeLeft = m.fromNow(true)                // only text (no "in")
-  statusColorClass = 'text-orange-500'
-}
+const statusLabel = computed(() => {
+  if (props.isCancelled) return 'Cancelled'
+  if (m.value.isValid() && m.value.isBefore(now.value)) return 'Completed'
+  return 'Upcoming'
+})
 
-const formattedDate = m.isValid() ? m.format(props.displayFormat) : '--/--/---- --:--'
+const timeLeft = computed(() => {
+  if (props.isCancelled) return ''
+  if (!m.value.isValid()) return ''
+  if (m.value.isBefore(now.value)) return '' // completed
+  return m.value.from(now.value, true) + ' left'
+})
+
+const statusColorClass = computed(() => {
+  if (props.isCancelled) return 'text-pink-600'
+  if (m.value.isValid() && m.value.isBefore(now.value)) return 'text-green-600'
+  return 'text-orange-500'
+})
+
+const formattedDate = computed(() =>
+  m.value.isValid() ? m.value.format(props.displayFormat) : '--/--/---- --:--'
+)
 </script>

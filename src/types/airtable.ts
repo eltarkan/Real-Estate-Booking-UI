@@ -20,3 +20,23 @@ export interface AirtableResponse {
   records: AppointmentRecord[]
   offset?: string
 }
+
+
+export interface AgentFields {
+  number: number
+  agent_name: string
+  agent_surname: string
+  appointments: string[]        // Appointment record IDs
+  color?: string
+}
+
+export interface AgentRecord {
+  id: string
+  createdTime: string
+  fields: AgentFields
+}
+
+export interface AirtableAgentsResponse {
+  records: AgentRecord[]
+  offset?: string
+}

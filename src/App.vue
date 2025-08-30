@@ -1,29 +1,32 @@
 <template>
   <div class="w-screen h-screen flex flex-col">
-    <Navbar />
+    <AgentToolbar
+      :agents="agentStore.allItems"
+      @update:filters="onFilters"
+    />
 
     <div class="flex flex-col">
       <AppointmentDetailBar
-        :title="`${store.total} Appointments found.`"
+        :title="`${appointmentsStore.total} Appointments found.`"
         button-text="Create Appointment"
         button-variant="primary"
         button-size="md"
       />
 
       <AppointmentList
-        :loading="store.loading"
-        :error="store.error"
-        :items="store.items"
-      :assignees="store.dummyData"
+        :loading="appointmentsStore.loading"
+        :error="appointmentsStore.error"
+        :items="appointmentsStore.items"
+        :assignees="agentStore.allItems"
       />
 
       <div class="mt-4">
         <Pagination
-          v-model:page="store.page"
-          :total-pages="store.totalPages"
-        :sibling-count="1"
-        :boundary-count="1"
-        @update:page="store.setPage"
+          v-model:page="appointmentsStore.page"
+          :total-pages="appointmentsStore.totalPages"
+          :sibling-count="1"
+          :boundary-count="1"
+          @update:page="appointmentsStore.setPage"
         />
       </div>
     </div>
@@ -32,16 +35,27 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import Navbar from '@/components/Navbar.vue'
 import AppointmentDetailBar from '@/components/molecules/AppointmentDetailBar.vue'
 import AppointmentList from '@/components/organisms/AppointmentList.vue'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAppointments } from '@/stores/appointments'
+import { useAgents } from '@/stores/agents.js'
+import AgentToolbar from '@/components/organisms/AgentToolbar.vue'
 
-const store = useAppointments()
+const appointmentsStore = useAppointments()
+const agentStore = useAgents()
 
 onMounted(async () => {
-  await store.fetchAll()
-  await store.dummyDataFeed()
+  await appointmentsStore.fetchAll()
+  await agentStore.fetchAll()
 })
+
+
+function onFilters(payload) {
+  queueMicrotask(() => {
+    appointmentsStore.filter(payload.q, payload.to, payload.from, payload.status)
+  })
+}
+
+
 </script>

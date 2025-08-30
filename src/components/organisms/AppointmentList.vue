@@ -22,4 +22,5 @@ const props = defineProps({
   items: { type: Array, default: () => [] },
   assignees: { type: Array, default: () => [] },
 })
+
 </script>

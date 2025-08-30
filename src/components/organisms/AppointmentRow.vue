@@ -5,7 +5,7 @@
         :name="get(item, 'fields.contact_name[0]', '')"
         :surname="get(item, 'fields.contact_surname[0]', '')"
         :email="get(item, 'fields.contact_email[0]', '')"
-        :phone="get(item, 'fields.contact_phone[0]', '')"
+        :phone="get(item.toString(), 'fields.contact_phone[0]', '')"
       />
 
       <AddressCell>
@@ -21,7 +21,7 @@
 
       </div>
 
-      <AssigneesCell :items="assignees" :max="5" />
+      <AssigneesCell :items="filterAssigneesByAppointmentId(item.id)" :max="5" />
     </div>
   </div>
 </template>
@@ -40,6 +40,12 @@ const get = (obj, path, fallback = '') => {
       .split('.')
       .reduce((o, k) => (o && k in o ? o[k] : undefined), obj) ?? fallback
   } catch { return fallback }
+}
+
+const filterAssigneesByAppointmentId = (id) => {
+  return props.assignees.filter(it =>
+    it.fields.appointments?.includes(id)
+  )
 }
 
 const props = defineProps({
