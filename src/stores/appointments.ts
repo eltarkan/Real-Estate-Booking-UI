@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import type { AppointmentRecord, AirtableResponse } from '@/types/airtable'
-import { UserPopData } from '../helpers/dummy'
 import { CreateAppointmentModalPayload } from '../types/airtable'
+import { safeGet } from '../helpers/utils'
+import moment from 'moment'
 
 interface Filters {
   q: string
@@ -110,7 +111,13 @@ export const useAppointments = defineStore('appointments', {
       this._applyPage()
     },
 
-    filter(q: string, to: string, from: string, status: string, agents: string[] = []): AppointmentRecord[] {
+    filter(
+      q: string,
+      to: string,
+      from: string,
+      status: string,
+      agents: string[] = [],
+    ): AppointmentRecord[] {
       this.currentFilters = {
         q: (q ?? '').trim(),
         from: from ?? '',
@@ -140,7 +147,7 @@ export const useAppointments = defineStore('appointments', {
 
       const qLower = this.currentFilters.q.toLowerCase()
       const fromTs = this.currentFilters.from ? new Date(this.currentFilters.from).getTime() : NaN
-      const toTs   = this.currentFilters.to   ? new Date(this.currentFilters.to).getTime()   : NaN
+      const toTs = this.currentFilters.to ? new Date(this.currentFilters.to).getTime() : NaN
 
       const filtered = source.filter((rec) => {
         const f: any = rec.fields ?? {}
@@ -157,12 +164,12 @@ export const useAppointments = defineStore('appointments', {
         }
 
         if (!isNaN(fromTs) && !isNaN(ts) && ts < fromTs) return false
-        if (!isNaN(toTs)   && !isNaN(ts) && ts > toTs)   return false
+        if (!isNaN(toTs) && !isNaN(ts) && ts > toTs) return false
 
         if (agents && agents.length) {
           const set = new Set(agents)
           const recAgents: string[] = f.agent_id ?? []
-          if (!recAgents.some(id => set.has(id))) return false
+          if (!recAgents.some((id) => set.has(id))) return false
         }
 
         if (qLower) {
@@ -188,6 +195,39 @@ export const useAppointments = defineStore('appointments', {
       return this.items
     },
 
+    getUsersAppointments(email: string): object[] {
+      const userMail = String(safeGet(email, 'fields.contact_email[0]') || '').toLowerCase();
+
+      const now = moment();
+
+      return this.allItems
+        .filter((rec: AppointmentRecord) => {
+          const recMail = String(safeGet(rec, 'fields.contact_email[0]') || '').toLowerCase();
+          return recMail === userMail;
+        })
+        .map((rec: AppointmentRecord) => {
+          let status = '';
+          const apptRaw = safeGet(rec, 'fields.appointment_date');
+          const appt = apptRaw ? moment(apptRaw) : null;
+
+          if (safeGet(rec, 'fields.is_cancelled')) {
+            status = 'Cancelled';
+          } else if (!appt || !appt.isValid()) {
+            status = '';
+          } else if (appt.isBefore(now)) {
+            status = 'Completed';
+          } else if (appt.isAfter(now)) {
+            status = 'Upcoming';
+          }
+
+          return {
+            appointmentDate: appt.format('DD/MM/YYYY HH:mm'),
+            appointmentAddress: safeGet(rec, 'fields.appointment_address'),
+            status,
+          };
+        });
+    },
+
     clearFilters() {
       this.currentFilters = { q: '', from: '', to: '', status: 'all' }
       if (this.originalAllItems) {
@@ -203,10 +243,6 @@ export const useAppointments = defineStore('appointments', {
     },
     prevPage() {
       if (this.canPrev) this.setPage(this.page - 1)
-    },
-
-    async dummyDataFeed() {
-      this.dummyData = UserPopData
     },
 
     _applyPage() {
@@ -283,7 +319,6 @@ export const useAppointments = defineStore('appointments', {
         this.loading = false
       }
     },
-
   },
 
   getters: {

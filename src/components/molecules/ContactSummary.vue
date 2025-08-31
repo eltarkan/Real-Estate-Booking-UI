@@ -20,6 +20,6 @@ const props = defineProps({
   name: String,
   surname: String,
   email: String,
-  phone: String,
+  phone: Number,
 })
 </script>

@@ -63,7 +63,7 @@
 import { ref, computed, watch } from 'vue'
 import { Search } from 'lucide-vue-next'
 import ErrorHelp from '@/components/atoms/ErrorHelp.vue'
-import { safeGet } from '@/helpers/utils.js'
+import { safeGet } from '@/helpers/utils'
 
 const props = defineProps({
   modelValue: String,

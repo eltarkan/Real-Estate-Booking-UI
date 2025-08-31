@@ -65,30 +65,27 @@
           <span class="text-sm text-gray-700">Related Appointments:</span>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 max-h-96 overflow-auto">
           <div
             v-for="ra in related"
             :key="ra.id"
             class="rounded-xl border border-gray-300 bg-white px-3 py-3 mb-2"
           >
             <div class="flex items-center gap-3">
-              <Home class="w-5 h-5 text-gray-500 shrink-0" />
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-800 truncate">
-                  {{ ra.fields.appointment_address }}
+                <div class="text-sm font-medium text-gray-800 truncate flex flex-row gap-3">
+                  <Home class="w-5 h-5 text-gray-500 shrink-0" />
+                  {{ ra.appointmentAddress }}
                 </div>
-                <div class="mt-2 flex items-center justify-between gap-2">
-                  <div class="inline-flex items-center justify-between rounded-full bg-[#EC1C80] px-2 py-1 h-7 w-40">
-                    <span class="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-semibold leading-none text-green-600">
-                      {{ ra._status || 'Completed' }}
+                <div class="mt-2 flex items-center justify-between gap-2 w-full">
+                  <div class="inline-flex items-center justify-between rounded-full bg-[#EC1C80] p-3 w-2/3">
+                    <span class="inline-flex items-center rounded-full bg-white p-2 text-xs font-semibold leading-none text-green-600">
+                      {{ ra.status}}
                     </span>
                     <span class="flex items-center gap-1 text-xs text-white">
                       <Clock class="w-3.5 h-3.5 opacity-90" />
-                      {{ ra._date || '08/05/2024' }}
+                      {{ ra.appointmentDate }}
                     </span>
-                  </div>
-                  <div class="flex items-center justify-center rounded-full h-8 w-8" :style="{ backgroundColor: ra._color || '#E08415' }">
-                    <span class="text-white text-xs font-semibold">{{ ra._initials || 'GI' }}</span>
                   </div>
                 </div>
               </div>
@@ -154,7 +151,7 @@ watch(
   (rec) => {
     const fv = rec?.fields ?? {}
     local.address       = fv.appointment_address ?? ''
-    local.agentId       = (fv.agent_id?.[0] ?? '') // tek agent seçimi
+    local.agentId       = (fv.agent_id?.[0] ?? '')
     local.appointmentAt = toInputLocal(fv.appointment_date)
 
     if (fv.is_cancelled) local.status = 'cancelled'
@@ -171,7 +168,7 @@ function onSave() {
     id: props.appointment?.id,
     address: local.address,
     agentId: local.agentId,
-    appointmentAt: local.appointmentAt, // datetime-local formatında
+    appointmentAt: local.appointmentAt, // datetime-local
     status: local.status,
   })
 }

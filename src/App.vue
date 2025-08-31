@@ -102,6 +102,8 @@ function onCreate(payload) {
 
 function onSelectAppointment(record) {
   selectedRecord.value = record
+  relatedAppointments.value = appointmentsStore.getUsersAppointments(selectedRecord.value)
+
   editModalState.value = true
 }
 
