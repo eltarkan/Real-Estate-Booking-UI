@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex items-center gap-2 w-full justify-end pb-4 p-2" role="navigation" aria-label="Pagination">
+  <nav class="flex items-center gap-2 w-full lg:justify-end pb-4 p-2" role="navigation" aria-label="Pagination">
     <!-- Prev -->
     <PageChip
       :disabled="page <= 1"

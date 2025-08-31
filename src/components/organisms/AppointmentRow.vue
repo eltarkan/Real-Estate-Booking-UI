@@ -3,7 +3,7 @@
     class="flex flex-row items-center w-full border-2 border-gray-300 rounded-lg p-2"
     :class="nTh % 2 === 0 ? 'bg-[#F0F5F5]' : ''"
   >
-    <div class="flex flex-row w-11/12 mx-auto items-center justify-center">
+    <div class="flex lg:flex-row flex-col gap-y-2 w-11/12 mx-auto items-center justify-center">
       <ContactSummary
         :name="safeGet(item, 'fields.contact_name[0]', '')"
         :surname="safeGet(item, 'fields.contact_surname[0]', '')"
@@ -15,13 +15,12 @@
         {{ item.fields.appointment_address }}
       </AddressCell>
 
-      <div class="flex w-1/4 items-center justify-end">
+      <div class="flex lg:w-1/4 w-full items-center justify-end">
         <AppointmentMeta
           :is-cancelled="item.fields.is_cancelled === true"
           :iso-date="item.fields.appointment_date"
           display-format="DD/MM/YYYY HH:mm"
         />
-
       </div>
 
       <AssigneesCell :items="filterAssigneesByAppointmentId(item.id)" :max="5" />

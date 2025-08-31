@@ -1,7 +1,7 @@
 <template>
-  <div class="flex ">
+  <div class="flex">
     <TextInput
-      custom-class="border-2 border-r-0 rounded-lg rounded-r-none border-gray-200 px-3 py-2 text-sm focus:outline-none"
+      custom-class="w-full border-2 border-r-0 rounded-lg rounded-r-none border-gray-200 px-3 py-2 text-sm focus:outline-none"
       v-model="qInner"
       :placeholder="placeholder"
     >

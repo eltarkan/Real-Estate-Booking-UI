@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col w-1/4 items-center justify-center">
+  <div class="flex flex-col lg:w-1/4 w-full lg:items-center items-end justify-center">
     <AvatarGroup
       :items="items"
       :max="max"

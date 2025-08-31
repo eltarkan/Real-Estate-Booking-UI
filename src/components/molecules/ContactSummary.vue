@@ -1,5 +1,5 @@
 <template>
-  <div class="flex w-1/4 flex-col gap-y-1.5">
+  <div class="flex lg:w-1/4 w-full flex-col gap-y-1.5">
     <IconText size="24" :icon="User" text-class="font-semibold text-slate-900">
       <span class="text-md">{{ name }} {{ surname }}</span>
     </IconText>

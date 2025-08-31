@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-4">
+  <div class="flex gap-4 lg:flex-row flex-col">
     <DateTimeInput v-model="fromInner" />
     <DateTimeInput v-model="toInner" />
   </div>

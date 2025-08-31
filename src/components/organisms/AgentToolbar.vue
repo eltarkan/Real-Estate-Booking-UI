@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row w-full px-2 py-4 border-b-2 border-gray-400 items-center gap-6">
+  <div class="flex lg:flex-row flex-col-reverse w-full px-2 py-4 border-b-2 border-gray-400 items-center gap-6">
     <!-- Left: avatars (multi-select) -->
     <AvatarGroup
       :items="agents"
@@ -14,7 +14,7 @@
     />
 
     <!-- Middle: filters -->
-    <div class="flex flex-row gap-4 flex-1">
+    <div class="flex lg:flex-row flex-col gap-4 flex-1 w-full">
       <StatusSelect v-model="status" />
       <DateRangePicker v-model:from="from" v-model:to="to" />
     </div>

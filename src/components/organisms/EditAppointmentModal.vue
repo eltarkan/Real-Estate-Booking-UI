@@ -1,6 +1,6 @@
 <template>
-  <div v-if="open" class="absolute inset-0 flex items-center justify-center bg-black/70 z-50">
-    <div class="max-w-md w-full mx-auto">
+  <div v-if="open" class="absolute inset-0 flex items-center justify-center bg-black/70 z-50 overflow-auto">
+    <div class="max-w-md w-full mx-auto max-h-screen">
       <div class="bg-[#ECF3F3] border border-gray-300 rounded-2xl p-5 shadow-2xl shadow-black">
         <!-- Header -->
         <div class="flex items-center justify-center gap-2 mb-4">
@@ -65,7 +65,7 @@
           <span class="text-sm text-gray-700">Related Appointments:</span>
         </div>
 
-        <div class="mb-6 max-h-96 overflow-auto">
+        <div class="mb-6 max-h-52 overflow-auto">
           <div
             v-for="ra in related"
             :key="ra.id"
