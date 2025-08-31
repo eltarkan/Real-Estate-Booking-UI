@@ -3,7 +3,8 @@
     :class="[
       'rounded-lg font-medium transition',
       sizeClasses,
-      variantClasses
+      variantClasses,
+      customClass
     ]"
   >
     <slot />
@@ -16,6 +17,7 @@ import { computed } from 'vue'
 const props = defineProps({
   variant: { type: String, default: 'primary' },
   size: { type: String, default: 'md' },
+  customClass : { type: String },
 })
 
 const variantClasses = computed(() => {

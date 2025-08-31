@@ -3,7 +3,8 @@
     <span class="font-bold text-md">
       {{ title }}
     </span>
-    <Button :variant="buttonVariant" :size="buttonSize">
+    <Button @click="openModal" :variant="buttonVariant" :size="buttonSize" custom-class="flex flex-row items-center gap-2 hover:bg-pink-700 hover:cursor-pointer">
+      <PlusCircle stroke-width="1" size="20" />
       {{ buttonText }}
     </Button>
   </div>
@@ -11,6 +12,7 @@
 
 <script setup>
 import Button from '@/components/atoms/Button.vue'
+import { PlusCircle } from 'lucide-vue-next'
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -18,4 +20,11 @@ const props = defineProps({
   buttonVariant: { type: String, default: 'primary' },
   buttonSize: { type: String, default: 'md' },
 })
+
+const emit  = defineEmits(["open:modal"])
+
+const openModal = () => {
+  emit('open:modal')
+}
+
 </script>
