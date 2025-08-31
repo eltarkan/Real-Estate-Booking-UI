@@ -19,13 +19,18 @@
           <AgentSelect v-model="agentId" :agents="agents" :error="errorLocation===3 ? errorMessage : ''"/>
         </div>
 
-        <div class="mb-8">
+        <div class="mb-4">
           <AppointmentDateField v-model="appointmentAt" :error="errorLocation===4 ? errorMessage : ''"/>
+        </div>
+
+        <div class="flex flex-row mb-8 px-1 items-center gap-2">
+          <span class="text-sm">Is Cancelled</span>
+          <input class="h-4 w-4" type="checkbox" v-model="isCancelled">
         </div>
 
         <div class="flex justify-end gap-3">
           <AppButton variant="dark" @click="$emit('cancel')">Cancel</AppButton>
-          <AppButton :variant="createEnabled ? 'primary' : 'muted'" :disabled="!createEnabled" @click="submit">Create</AppButton>
+          <AppButton :loading="isLoading" :variant="createEnabled ? 'primary' : 'muted'" :disabled="!createEnabled" @click="submit">Create</AppButton>
         </div>
       </div>
     </div>
@@ -46,8 +51,10 @@ const props = defineProps({
   open: Boolean,
   appointments: { type: Array, default: () => [] }, // AppointmentRecord[]
   agents: { type: Array, default: () => [] },       // AgentRecord[]
+  isCancelled: { type: Boolean, default: false },
   errorMessage: { type: String, default: 'Invalid input' },
   errorLocation: { type: Number, default: -1 },
+  isLoading: { type: Boolean, default: false }
 })
 const emit = defineEmits(['cancel','create'])
 
@@ -56,6 +63,7 @@ const address = ref('')
 const agentId = ref('')
 const appointmentAt = ref('')
 const userId = ref('')
+const isCancelled = ref(false)
 
 const createEnabled = computed(() => !!(userId.value && address.value && agentId.value && appointmentAt.value))
 
@@ -72,6 +80,7 @@ function submit() {
     address: address.value,
     agentId: agentId.value,
     appointmentAt: appointmentAt.value,
+    isCancelled: isCancelled.value
   })
 }
 </script>

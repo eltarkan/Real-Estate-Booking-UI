@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-center rounded-full ring-1"
+    class="flex items-center justify-center rounded-full ring-1 font-light"
     :class="[sizeClasses, ring ? ringColor : 'ring-0', textClass]"
     :style="bgStyle"
     :title="title"

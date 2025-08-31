@@ -1,6 +1,6 @@
 export interface AppointmentFields {
   appointment_id: number
-  appointment_date: string         // ISO date
+  appointment_date: string // ISO date
   appointment_address: string
   contact_id: string[]
   contact_name: string[]
@@ -21,12 +21,11 @@ export interface AirtableResponse {
   offset?: string
 }
 
-
 export interface AgentFields {
   number: number
   agent_name: string
   agent_surname: string
-  appointments: string[]        // Appointment record IDs
+  appointments: string[] // Appointment record IDs
   color?: string
 }
 
@@ -39,4 +38,12 @@ export interface AgentRecord {
 export interface AirtableAgentsResponse {
   records: AgentRecord[]
   offset?: string
+}
+
+export interface CreateAppointmentModalPayload {
+  userId: string
+  address: string
+  agentId: string
+  appointmentAt: string
+  isCancelled: boolean
 }

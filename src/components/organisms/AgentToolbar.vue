@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-row w-full px-2 py-4 border-b-2 border-gray-400 items-center gap-6">
-    <!-- Left: avatars -->
+    <!-- Left: avatars (multi-select) -->
     <AvatarGroup
       :items="agents"
       size="md"
@@ -8,6 +8,9 @@
       overlap="-space-x-2"
       :ring="true"
       ring-color="ring-white"
+      :show-counter="true"
+      :selected="selectedAgents"
+      @update:selected="val => selectedAgents = val"
     />
 
     <!-- Middle: filters -->
@@ -35,7 +38,7 @@ type AgentRecord = {
 
 const props = defineProps<{ agents: AgentRecord[] }>()
 const emit  = defineEmits<{
-  (e:'update:filters', payload: { status:string; from:string; to:string; q:string }): void
+  (e:'update:filters', payload: { status:string; from:string; to:string; q:string; agents:string[] }): void
   (e:'search', q:string): void
 }>()
 
@@ -44,8 +47,16 @@ const from   = ref('')
 const to     = ref('')
 const q      = ref('')
 
-watch([status, from, to, q], () => {
-  emit('update:filters', { status: status.value, from: from.value, to: to.value, q: q.value })
+let selectedAgents = ref<string[]>([])
+
+watch([status, from, to, q, selectedAgents], () => {
+  emit('update:filters', {
+    status: status.value,
+    from: from.value,
+    to: to.value,
+    q: q.value,
+    agents: selectedAgents.value,
+  })
 }, { immediate: true })
 
 function onSubmit(v:string) {

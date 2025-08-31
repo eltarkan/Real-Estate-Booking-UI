@@ -1,13 +1,13 @@
 <template>
   <div class="flex w-1/4 flex-col gap-y-1.5">
-    <IconText :icon="User" text-class="font-semibold text-slate-900">
-      {{ name }} {{ surname }}
+    <IconText size="24" :icon="User" text-class="font-semibold text-slate-900">
+      <span class="text-md">{{ name }} {{ surname }}</span>
     </IconText>
-    <IconText :icon="Mail">
-      {{ email }}
+    <IconText size="24" :icon="Mail">
+      <span class="text-[12px]">{{ email.toLowerCase() }}</span>
     </IconText>
-    <IconText :icon="Phone">
-      {{ phone }}
+    <IconText size="24" :icon="Phone">
+      <span class="text-[12px]">{{ phone }}</span>
     </IconText>
   </div>
 </template>

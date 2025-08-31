@@ -4,6 +4,7 @@
       <input
         :value="modelValue"
         @input="onInput"
+        @blur="validateTerm"
         type="text"
         placeholder="Search"
         class="flex-1 rounded-l-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none bg-white"
@@ -81,33 +82,80 @@ function onInput(e) {
   term.value = e.target.value || ''
   emit('update:modelValue', term.value)
   open.value = !!term.value
+  if (errorMessage.value) errorMessage.value = ''
 }
 
+const normalize = (s) =>
+  (s || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+
 const suggestions = computed(() => {
-  const t = term.value.trim().toLowerCase()
+  const t = normalize(term.value)
   if (!t) return []
   const filtered = props.source.filter((rec) => {
-    const hay = [
+    const hay = normalize([
       safeGet(rec,'fields.contact_name[0]',''),
       safeGet(rec,'fields.contact_surname[0]',''),
       safeGet(rec,'fields.contact_email[0]',''),
       safeGet(rec,'fields.contact_phone[0]',''),
       safeGet(rec,'fields.appointment_address',''),
-    ].join(' ').toLowerCase()
+    ].join(' '))
     return hay.includes(t)
   }).slice(0, 20)
-  errorMessage.value = filtered.length ? '' : 'No records found.'
   return filtered
 })
+
+function findExactMatch(t) {
+  const n = normalize(t)
+  if (!n) return null
+  return props.source.find((rec) => {
+    const name = normalize(safeGet(rec,'fields.contact_name[0]',''))
+    const surname = normalize(safeGet(rec,'fields.contact_surname[0]',''))
+    const full = (name + ' ' + surname).trim()
+    const email = normalize(safeGet(rec,'fields.contact_email[0]',''))
+    const phone = normalize(safeGet(rec,'fields.contact_phone[0]',''))
+    return n === full || (email && n === email) || (phone && n === phone)
+  }) || null
+}
+
+function validateTerm() {
+  if (!term.value) { errorMessage.value = ''; return }
+  const exact = findExactMatch(term.value)
+  errorMessage.value = exact ? '' : 'Invalid user'
+}
 
 function choose(item) {
   const name = `${safeGet(item,'fields.contact_name[0]','')} ${safeGet(item,'fields.contact_surname[0]','')}`.trim()
   emit('update:modelValue', name)
   emit('select', item)
+  errorMessage.value = ''
   open.value = false
 }
 
 function move(d){ if(!open.value) open.value = true; const len = suggestions.value.length; if(!len) return; active.value = (active.value + d + len) % len }
-function onEnter(){ if(open.value && suggestions.value.length) choose(suggestions.value[active.value]) }
-function onClick(){ if(suggestions.value.length) choose(suggestions.value[0]); else open.value = true }
+
+function onEnter(){
+  if (open.value && suggestions.value.length) {
+    choose(suggestions.value[active.value])
+    return
+  }
+  const exact = findExactMatch(term.value)
+  if (exact) {
+    choose(exact)
+  } else {
+    errorMessage.value = 'Invalid user'
+  }
+}
+
+function onClick(){
+  if (suggestions.value.length) choose(suggestions.value[0])
+  else {
+    validateTerm()
+    open.value = true
+  }
+}
 </script>

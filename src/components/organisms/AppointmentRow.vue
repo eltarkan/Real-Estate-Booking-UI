@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-row items-center w-full bg-[#F0F5F5] rounded-lg p-2">
+  <div
+    class="flex flex-row items-center w-full border-2 border-gray-300 rounded-lg p-2"
+    :class="nTh % 2 === 0 ? 'bg-[#F0F5F5]' : ''"
+  >
     <div class="flex flex-row w-11/12 mx-auto items-center justify-center">
       <ContactSummary
         :name="safeGet(item, 'fields.contact_name[0]', '')"
@@ -42,5 +45,6 @@ const filterAssigneesByAppointmentId = (id) => {
 const props = defineProps({
   item: { type: Object, required: true },
   assignees: { type: Array, default: () => [] }, // AvatarGroup
+  nTh: { type: Number, default: 0 },
 })
 </script>

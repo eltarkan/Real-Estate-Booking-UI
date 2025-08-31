@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { AppointmentRecord, AirtableResponse } from '@/types/airtable'
 import { UserPopData } from '../helpers/dummy'
+import { CreateAppointmentModalPayload } from '../types/airtable'
 
 interface Filters {
   q: string
@@ -29,6 +30,10 @@ interface State {
   dummyData: object[]
 }
 
+const API_KEY = import.meta.env.VITE_AIRTABLE_KEY
+const BASE_ID = import.meta.env.VITE_AIRTABLE_BASE
+const TABLE = 'Appointments'
+
 export const useAppointments = defineStore('appointments', {
   state: (): State => ({
     allItems: [],
@@ -50,10 +55,6 @@ export const useAppointments = defineStore('appointments', {
         return
       }
 
-      const API_KEY = import.meta.env.VITE_AIRTABLE_KEY
-      const BASE_ID = import.meta.env.VITE_AIRTABLE_BASE
-      const TABLE   = 'Appointments'
-
       const baseParams = new URLSearchParams()
       baseParams.set('pageSize', '100')
       baseParams.set('sort[0][field]', 'appointment_date')
@@ -73,7 +74,7 @@ export const useAppointments = defineStore('appointments', {
 
           const res = await fetch(
             `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`,
-            { headers: { Authorization: `Bearer ${API_KEY}` } }
+            { headers: { Authorization: `Bearer ${API_KEY}` } },
           )
           if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
           const data: AirtableResponse = await res.json()
@@ -109,15 +110,17 @@ export const useAppointments = defineStore('appointments', {
       this._applyPage()
     },
 
-    filter(q: string, to: string, from: string, status: string): AppointmentRecord[] {
+    filter(q: string, to: string, from: string, status: string, agents: string[] = []): AppointmentRecord[] {
       this.currentFilters = {
         q: (q ?? '').trim(),
         from: from ?? '',
         to: to ?? '',
         status: (status as Filters['status']) || 'all',
-      }
+        agents: agents ?? [],
+      } as any
 
-      const isActive = this._isFilterActive()
+      const baseActive = this._isFilterActive()
+      const isActive = baseActive || (agents && agents.length > 0)
 
       if (isActive && !this.originalAllItems) {
         this.originalAllItems = this.allItems.slice()
@@ -143,6 +146,7 @@ export const useAppointments = defineStore('appointments', {
         const f: any = rec.fields ?? {}
         const dateStr: string | undefined = f.appointment_date || rec.createdTime
         const ts = dateStr ? new Date(dateStr).getTime() : NaN
+
         let statusVal: Filters['status']
         if (f.is_cancelled) statusVal = 'cancelled'
         else if (!isNaN(ts) && ts < Date.now()) statusVal = 'completed'
@@ -154,6 +158,12 @@ export const useAppointments = defineStore('appointments', {
 
         if (!isNaN(fromTs) && !isNaN(ts) && ts < fromTs) return false
         if (!isNaN(toTs)   && !isNaN(ts) && ts > toTs)   return false
+
+        if (agents && agents.length) {
+          const set = new Set(agents)
+          const recAgents: string[] = f.agent_id ?? []
+          if (!recAgents.some(id => set.has(id))) return false
+        }
 
         if (qLower) {
           const hay = [
@@ -221,6 +231,59 @@ export const useAppointments = defineStore('appointments', {
       const f = this.currentFilters
       return !!(f.q || f.from || f.to || (f.status && f.status !== 'all'))
     },
+
+    async createAppointment(payload: CreateAppointmentModalPayload) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const postBody = {
+          records: [
+            {
+              fields: {
+                appointment_date: payload.appointmentAt,
+                appointment_address: payload.address,
+                contact_id: [payload.userId],
+                agent_id: [payload.agentId],
+                is_cancelled: payload.isCancelled,
+              },
+            },
+          ],
+        }
+
+        const res = await fetch(
+          `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(postBody),
+          },
+        )
+
+        if (!res.ok) {
+          let detail = ''
+          try {
+            const errJson = await res.json()
+            detail = errJson?.error?.message || JSON.stringify(errJson)
+          } catch {
+            detail = await res.text()
+          }
+          const msg = `Airtable request failed: ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`
+          throw new Error(msg)
+        }
+
+        return await res.json()
+      } catch (e: any) {
+        this.error = e?.message ?? 'Create error'
+        throw e
+      } finally {
+        this.loading = false
+      }
+    },
+
   },
 
   getters: {
@@ -229,6 +292,6 @@ export const useAppointments = defineStore('appointments', {
     canNext: (s) => s.page < Math.ceil((s.allItems.length || 1) / s.pageSize),
     canPrev: (s) => s.page > 1,
     count: (s) => s.items.length,
-    emails: (s) => s.allItems.flatMap(r => r.fields.contact_email),
+    emails: (s) => s.allItems.flatMap((r) => r.fields.contact_email),
   },
 })

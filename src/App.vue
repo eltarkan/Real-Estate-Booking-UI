@@ -1,13 +1,24 @@
 <template>
   <div class="w-screen h-screen flex flex-col relative">
+
     <CreateAppointmentModal
       :open="modalState"
       :appointments="appointmentsStore.allItems"
       :agents="agentStore.allItems"
       :error-message="errorMessage"
       :error-location="errorMessageLocation"
+      :is-loading="isLoading"
       @cancel="onCancel"
       @create="onCreate"
+    />
+
+    <EditAppointmentModal
+      :open="editModalState"
+      :appointment="selectedRecord"
+      :agents="agentStore.allItems"
+      :related="relatedAppointments"
+      @close="editModalState=false"
+      @save="onSaveEdit"
     />
 
     <AgentToolbar :agents="agentStore.allItems" @update:filters="onFilters" />
@@ -26,6 +37,8 @@
         :error="appointmentsStore.error"
         :items="appointmentsStore.items"
         :assignees="agentStore.allItems"
+        @update:filters="onFilters"
+        @select="onSelectAppointment"
       />
 
       <div class="mt-4">
@@ -48,27 +61,54 @@ import AppointmentDetailBar from '@/components/molecules/AppointmentDetailBar.vu
 import AppointmentList from '@/components/organisms/AppointmentList.vue'
 import Pagination from '@/components/molecules/Pagination.vue'
 import CreateAppointmentModal from '@/components/organisms/CreateAppointmentModal.vue'
+import EditAppointmentModal from '@/components/organisms/EditAppointmentModal.vue'
 import { useAppointments } from '@/stores/appointments'
 import { useAgents } from '@/stores/agents'
 
 const appointmentsStore = useAppointments()
 const agentStore = useAgents()
 
-const modalState = ref(true)
+const modalState = ref(false)
+const editModalState = ref(false)
 const errorMessage = ref('Invalid input')
 const errorMessageLocation = ref(-1)
+const isLoading = ref(false)
+
+const selectedRecord = ref(null)
+
+const relatedAppointments = ref([])
 
 onMounted(async () => {
   await appointmentsStore.fetchAll()
   await agentStore.fetchAll()
 })
 
-function onFilters(p) { queueMicrotask(() => appointmentsStore.filter(p.q, p.to, p.from, p.status)) }
+function onFilters(p) {
+  console.log('Selected agents:', p.agents)
+  queueMicrotask(() =>
+    appointmentsStore.filter(p.q, p.to, p.from, p.status, p.agents)
+  )
+}
+
 function openModal() { modalState.value = true }
 function onCancel() { modalState.value = false }
 function onCreate(payload) {
-  console.log('create payload:', payload)
-  modalState.value = false
-  // TODO: API call
+  isLoading.value = true
+  appointmentsStore.createAppointment(payload)
+    .then(() => console.log('New Appointment created'))
+    .catch(console.error)
+    .finally(() => { isLoading.value = false })
+}
+
+function onSelectAppointment(record) {
+  selectedRecord.value = record
+  editModalState.value = true
+}
+
+// Edit modal save
+function onSaveEdit(updated) {
+  console.log('Edit Save payload:', updated)
+  // todo: add patch
+  editModalState.value = false
 }
 </script>
