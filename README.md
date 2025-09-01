@@ -10,6 +10,8 @@ Minimal, fast, and type-safe front-end with atomic design for a real-estate appo
 - Pinia store with optimistic updates
 - Histoire stories for components (`*.histoire.vue`)
 - [Guide](https://atomicdesign.bradfrost.com/) for Atomic Design
+- [Live demo](https://reb-ui.kodbukucu.com/)
+- For [API demo](https://reb-api.kodbukucu.com/v0/appkTtnhXACqj0kag/Appointments)
 
 ---
 
@@ -43,4 +45,20 @@ For historie
 Project build and push to private registry
 ```
 docker buildx build --platform linux/amd64 --push -t xxxx/reb-ui .
+```
+
+## Access
+### API
+List appointments
+```bash
+  curl https://reb-api.kodbukucu.com/v0/appkTtnhXACqj0kag/Appointments
+```
+List agents
+```bash
+  curl https://reb-api.kodbukucu.com/v0/appkTtnhXACqj0kag/Agents
+```
+
+### UI
+```
+  https://reb-ui.kodbukucu.com/
 ```
