@@ -13,7 +13,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "format": "prettier --write src/",
-    "history": "histoire dev"
+    "history": "histoire dev",
+    "history-build": "yarn histoire build"
   },
   "dependencies": {
     "@histoire/plugin-vue": "^1.0.0-alpha.3",
