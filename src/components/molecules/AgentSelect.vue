@@ -4,7 +4,7 @@
     <option v-for="a in agents" :key="a.id" :value="a.id">
       {{ a.fields.agent_name }} {{ a.fields.agent_surname }}
     </option>
-    <template #icon><ChevronDown class="w-5 h-5"/></template>
+    <template><ChevronDown class="w-5 h-5"/></template>
   </SelectField>
 
   <ErrorHelp :message="error" />

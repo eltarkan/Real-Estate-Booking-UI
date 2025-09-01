@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AppointmentRecord, AirtableResponse } from '@/types/airtable'
-import { CreateAppointmentModalPayload, UpdateAppointmentModalPayload } from '../types/airtable'
+import type { AppointmentRecord, AirtableResponse, CreateAppointmentModalPayload, UpdateAppointmentModalPayload } from '@/types/airtable'
 import { safeGet, getTime } from '../helpers/utils'
 import moment from 'moment'
 
@@ -226,7 +225,7 @@ export const useAppointments = defineStore('appointments', {
           }
 
           return {
-            appointmentDate: appt.format('DD/MM/YYYY HH:mm'),
+            appointmentDate: appt?.format('DD/MM/YYYY HH:mm'),
             appointmentAddress: safeGet(rec, 'fields.appointment_address'),
             status,
           }

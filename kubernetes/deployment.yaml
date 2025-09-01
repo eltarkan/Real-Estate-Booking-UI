@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: reb
+  name: reb-ui
+  labels:
+    app: reb-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reb-ui
+  template:
+    metadata:
+      labels:
+        app: reb-ui
+    spec:
+      containers:
+        - name: reb-ui
+          image: xxxx/reb-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
