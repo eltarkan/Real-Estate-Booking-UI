@@ -47,3 +47,12 @@ export interface CreateAppointmentModalPayload {
   appointmentAt: string
   isCancelled: boolean
 }
+
+export interface UpdateAppointmentModalPayload {
+  appointmentId: string
+  userId: string
+  address: string
+  agentId: string
+  appointmentAt: string
+  isCancelled: boolean
+}

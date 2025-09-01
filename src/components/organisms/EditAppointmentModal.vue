@@ -165,11 +165,12 @@ watch(
 
 function onSave() {
   emit('save', {
-    id: props.appointment?.id,
+    appointmentId: props.appointment?.id,
+    userId: props.appointment.fields.contact_id,
     address: local.address,
     agentId: local.agentId,
     appointmentAt: local.appointmentAt, // datetime-local
-    status: local.status,
+    isCancelled: local.status == 'cancelled',
   })
 }
 </script>

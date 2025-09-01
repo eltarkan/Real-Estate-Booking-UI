@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { AppointmentRecord, AirtableResponse } from '@/types/airtable'
-import { CreateAppointmentModalPayload } from '../types/airtable'
-import { safeGet } from '../helpers/utils'
+import { CreateAppointmentModalPayload, UpdateAppointmentModalPayload } from '../types/airtable'
+import { safeGet, getTime } from '../helpers/utils'
 import moment from 'moment'
 
 interface Filters {
@@ -34,6 +34,10 @@ interface State {
 const API_KEY = import.meta.env.VITE_AIRTABLE_KEY
 const BASE_ID = import.meta.env.VITE_AIRTABLE_BASE
 const TABLE = 'Appointments'
+
+// export let API_URL = 'http://127.0.0.1:8000/v0'
+export let API_URL = 'https://reb-api.kodbukucu.com/v0'
+// export let API_URL = 'https://api.airtable.com/v0'
 
 export const useAppointments = defineStore('appointments', {
   state: (): State => ({
@@ -73,10 +77,9 @@ export const useAppointments = defineStore('appointments', {
           const params = new URLSearchParams(baseParams)
           if (offset) params.set('offset', offset)
 
-          const res = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`,
-            { headers: { Authorization: `Bearer ${API_KEY}` } },
-          )
+          const res = await fetch(`${API_URL}/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`, {
+            headers: { Authorization: `Bearer ${API_KEY}` },
+          })
           if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
           const data: AirtableResponse = await res.json()
 
@@ -92,6 +95,8 @@ export const useAppointments = defineStore('appointments', {
           if (adA && adB) return new Date(adB).getTime() - new Date(adA).getTime()
           return new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
         })
+
+        acc.sort((a, b) => getTime(b) - getTime(a)) // DESC
 
         this.allItems = acc
         this.originalAllItems = null
@@ -196,36 +201,36 @@ export const useAppointments = defineStore('appointments', {
     },
 
     getUsersAppointments(email: string): object[] {
-      const userMail = String(safeGet(email, 'fields.contact_email[0]') || '').toLowerCase();
+      const userMail = String(safeGet(email, 'fields.contact_email[0]') || '').toLowerCase()
 
-      const now = moment();
+      const now = moment()
 
       return this.allItems
         .filter((rec: AppointmentRecord) => {
-          const recMail = String(safeGet(rec, 'fields.contact_email[0]') || '').toLowerCase();
-          return recMail === userMail;
+          const recMail = String(safeGet(rec, 'fields.contact_email[0]') || '').toLowerCase()
+          return recMail === userMail
         })
         .map((rec: AppointmentRecord) => {
-          let status = '';
-          const apptRaw = safeGet(rec, 'fields.appointment_date');
-          const appt = apptRaw ? moment(apptRaw) : null;
+          let status = ''
+          const apptRaw = safeGet(rec, 'fields.appointment_date')
+          const appt = apptRaw ? moment(apptRaw) : null
 
           if (safeGet(rec, 'fields.is_cancelled')) {
-            status = 'Cancelled';
+            status = 'Cancelled'
           } else if (!appt || !appt.isValid()) {
-            status = '';
+            status = ''
           } else if (appt.isBefore(now)) {
-            status = 'Completed';
+            status = 'Completed'
           } else if (appt.isAfter(now)) {
-            status = 'Upcoming';
+            status = 'Upcoming'
           }
 
           return {
             appointmentDate: appt.format('DD/MM/YYYY HH:mm'),
             appointmentAddress: safeGet(rec, 'fields.appointment_address'),
             status,
-          };
-        });
+          }
+        })
     },
 
     clearFilters() {
@@ -286,16 +291,61 @@ export const useAppointments = defineStore('appointments', {
             },
           ],
         }
+        console.log(postBody)
+
+        const res = await fetch(`${API_URL}/${BASE_ID}/${encodeURIComponent(TABLE)}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(postBody),
+        })
+
+        if (!res.ok) {
+          let detail = ''
+          try {
+            const errJson = await res.json()
+            detail = errJson?.error?.message || JSON.stringify(errJson)
+          } catch {
+            detail = await res.text()
+          }
+          const msg = `Airtable request failed: ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`
+          throw new Error(msg)
+        }
+
+        return await res.json()
+      } catch (e: any) {
+        this.error = e?.message ?? 'Create error'
+        throw e
+      } finally {
+        this.loading = false
+      }
+    },
+    async updateAppointment(payload: UpdateAppointmentModalPayload) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const updateBody = {
+          fields: {
+            appointment_date: payload.appointmentAt,
+            appointment_address: payload.address,
+            contact_id: [payload.userId],
+            agent_id: [payload.agentId],
+            is_cancelled: payload.isCancelled,
+          },
+        }
 
         const res = await fetch(
-          `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}`,
+          `${API_URL}/${BASE_ID}/${encodeURIComponent(TABLE)}/${payload.appointmentId}`,
           {
-            method: 'POST',
+            method: 'PATCH',
             headers: {
               Authorization: `Bearer ${API_KEY}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(postBody),
+            body: JSON.stringify(updateBody),
           },
         )
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { AgentRecord, AirtableAgentsResponse } from '@/types/airtable'
-
+import {API_URL} from "./appointments"
 interface State {
   allItems: AgentRecord[]
   items: AgentRecord[]
@@ -52,7 +52,7 @@ export const useAgents = defineStore('agents', {
           if (offset) params.set('offset', offset)
 
           const res = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`,
+            `${API_URL}/${BASE_ID}/${encodeURIComponent(TABLE)}?${params}`,
             { headers: { Authorization: `Bearer ${API_KEY}` } }
           )
           if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)

@@ -64,10 +64,12 @@ const agentId = ref('')
 const appointmentAt = ref('')
 const userId = ref('')
 const isCancelled = ref(false)
+const selectedUserItem = ref(null)
 
 const createEnabled = computed(() => !!(userId.value && address.value && agentId.value && appointmentAt.value))
 
 function onPick(item) {
+  selectedUserItem.value = item
   userId.value = item?.id || ''
   search.value = `${safeGet(item,'fields.contact_name[0]','')} ${safeGet(item,'fields.contact_surname[0]','')}`.trim()
   const addr = safeGet(item,'fields.appointment_address','')
@@ -75,12 +77,19 @@ function onPick(item) {
 }
 
 function submit() {
-  emit('create', {
+  const data = {
     userId: userId.value,
     address: address.value,
     agentId: agentId.value,
     appointmentAt: appointmentAt.value,
     isCancelled: isCancelled.value
-  })
+  }
+  userId.value = ''
+  address.value = ''
+  agentId.value = ''
+  appointmentAt.value = ''
+  isCancelled.value = false
+  search.value = ''
+  emit('create', data)
 }
 </script>

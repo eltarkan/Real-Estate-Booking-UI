@@ -84,6 +84,7 @@ onMounted(async () => {
 })
 
 function onFilters(p) {
+  console.log(agentStore.allItems)
   console.log('Selected agents:', p.agents)
   queueMicrotask(() =>
     appointmentsStore.filter(p.q, p.to, p.from, p.status, p.agents)
@@ -92,25 +93,35 @@ function onFilters(p) {
 
 function openModal() { modalState.value = true }
 function onCancel() { modalState.value = false }
+
+function onSelectAppointment(record) {
+  selectedRecord.value = record
+  console.log(selectedRecord.value)
+  relatedAppointments.value = appointmentsStore.getUsersAppointments(selectedRecord.value)
+  editModalState.value = true
+}
+
 function onCreate(payload) {
   isLoading.value = true
   appointmentsStore.createAppointment(payload)
-    .then(() => console.log('New Appointment created'))
+    .then(() => {
+      appointmentsStore.reset()
+      appointmentsStore.fetchAll()
+    })
     .catch(console.error)
     .finally(() => { isLoading.value = false })
 }
 
-function onSelectAppointment(record) {
-  selectedRecord.value = record
-  relatedAppointments.value = appointmentsStore.getUsersAppointments(selectedRecord.value)
-
-  editModalState.value = true
-}
-
 // Edit modal save
 function onSaveEdit(updated) {
-  console.log('Edit Save payload:', updated)
-  // todo: add patch
-  editModalState.value = false
+  isLoading.value = true
+  appointmentsStore.updateAppointment(updated)
+    .then(() => {
+      appointmentsStore.reset()
+      appointmentsStore.fetchAll()
+    })
+    .catch(console.error)
+    .finally(() => { isLoading.value = false })
 }
+
 </script>

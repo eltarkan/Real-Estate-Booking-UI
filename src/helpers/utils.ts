@@ -7,3 +7,10 @@ export const safeGet = (obj, path, fallback = '') => {
       .reduce((o, k) => (o && k in o ? o[k] : undefined), obj) ?? fallback
   } catch { return fallback }
 }
+
+export const getTime = (r: AppointmentRecord) => {
+  const ad = (r.fields as any)?.appointment_date;
+  const iso = Array.isArray(ad) ? ad?.[0] : ad;
+  const t = Date.parse(iso ?? '');
+  return Number.isFinite(t) ? t : Date.parse(r.createdTime ?? '');
+};

@@ -1,7 +1,7 @@
 <template>
   <div class="inline-flex items-center justify-between w-full rounded-full bg-[#EC1C80] px-4 py-2 h-14 shadow">
     <!-- Status chip -->
-    <div class="flex lg:flex-row flex-col bg-white w-1/2 rounded-full h-full items-center justify-evenly">
+    <div class="flex flex-wrap bg-white w-1/2 rounded-full h-full items-center justify-evenly">
       <span
         :class="[
         'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold leading-none',
