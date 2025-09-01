@@ -55,6 +55,8 @@
 </template>
 
 <script setup>
+import { useToast } from "vue-toastification";
+
 import { onMounted, ref } from 'vue'
 import AgentToolbar from '@/components/organisms/AgentToolbar.vue'
 import AppointmentDetailBar from '@/components/molecules/AppointmentDetailBar.vue'
@@ -64,6 +66,8 @@ import CreateAppointmentModal from '@/components/organisms/CreateAppointmentModa
 import EditAppointmentModal from '@/components/organisms/EditAppointmentModal.vue'
 import { useAppointments } from '@/stores/appointments'
 import { useAgents } from '@/stores/agents'
+
+const toast = useToast();
 
 const appointmentsStore = useAppointments()
 const agentStore = useAgents()
@@ -107,6 +111,10 @@ function onCreate(payload) {
     .then(() => {
       appointmentsStore.reset()
       appointmentsStore.fetchAll()
+      toast.success("Appointment created successfully.", {
+        timeout: 2000
+      });
+      modalState.value = false
     })
     .catch(console.error)
     .finally(() => { isLoading.value = false })
@@ -119,6 +127,10 @@ function onSaveEdit(updated) {
     .then(() => {
       appointmentsStore.reset()
       appointmentsStore.fetchAll()
+      toast.success("Appointment saved successfully.", {
+        timeout: 2000
+      });
+      editModalState.value = false
     })
     .catch(console.error)
     .finally(() => { isLoading.value = false })
