@@ -35,8 +35,8 @@ const BASE_ID = import.meta.env.VITE_AIRTABLE_BASE
 const TABLE = 'Appointments'
 
 // export let API_URL = 'http://127.0.0.1:8000/v0'
-export let API_URL = 'https://reb-api.kodbukucu.com/v0'
-// export let API_URL = 'https://api.airtable.com/v0'
+// export let API_URL = 'https://reb-api.kodbukucu.com/v0'
+export let API_URL = 'https://api.airtable.com/v0'
 
 export const useAppointments = defineStore('appointments', {
   state: (): State => ({
@@ -330,7 +330,7 @@ export const useAppointments = defineStore('appointments', {
           fields: {
             appointment_date: payload.appointmentAt,
             appointment_address: payload.address,
-            contact_id: [payload.userId],
+            contact_id: payload.userId,
             agent_id: [payload.agentId],
             is_cancelled: payload.isCancelled,
           },

@@ -78,12 +78,14 @@ function onPick(item) {
 
 function submit() {
   const data = {
-    userId: userId.value,
+    userId: selectedUserItem.value.fields.contact_id[0],
     address: address.value,
     agentId: agentId.value,
     appointmentAt: appointmentAt.value,
     isCancelled: isCancelled.value
   }
+  console.log(selectedUserItem.value.fields.contact_id)
+  console.log(data)
   userId.value = ''
   address.value = ''
   agentId.value = ''
